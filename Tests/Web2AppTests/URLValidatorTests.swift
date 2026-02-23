@@ -63,4 +63,31 @@ struct URLValidatorTests {
             try URLValidator.validate("file:///etc/passwd")
         }
     }
+
+    @Test("JavaScript scheme is rejected")
+    func javascriptSchemeThrows() {
+        #expect(throws: (any Error).self) {
+            try URLValidator.validate("javascript:alert(1)")
+        }
+    }
+
+    @Test("Data scheme is rejected")
+    func dataSchemeThrows() {
+        #expect(throws: (any Error).self) {
+            try URLValidator.validate("data:text/html,<script>alert(1)</script>")
+        }
+    }
+
+    @Test("Blob scheme is rejected")
+    func blobSchemeThrows() {
+        #expect(throws: (any Error).self) {
+            try URLValidator.validate("blob:https://example.com/uuid")
+        }
+    }
+
+    @Test("Mixed case HTTPS URL passes validation")
+    func mixedCaseHTTPS() throws {
+        let url = try URLValidator.validate("HTTPS://example.com")
+        #expect(url.host() == "example.com")
+    }
 }

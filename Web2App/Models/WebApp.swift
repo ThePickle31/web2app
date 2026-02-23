@@ -24,7 +24,12 @@ struct WebApp: Identifiable, Codable, Hashable {
         self.id = id
         self.name = name
         self.url = url
-        self.bundleIdentifier = bundleIdentifier ?? "com.web2app.\(name.lowercased().replacingOccurrences(of: " ", with: "-").filter { $0.isLetter || $0.isNumber || $0 == "-" })"
+        let sanitized = name.lowercased()
+            .replacingOccurrences(of: " ", with: "-")
+            .filter { $0.isLetter || $0.isNumber || $0 == "-" }
+        let suffix = sanitized.isEmpty ? UUID().uuidString.prefix(8).lowercased() : sanitized
+        let truncated = String(suffix.prefix(50))
+        self.bundleIdentifier = bundleIdentifier ?? "com.web2app.\(truncated)"
         self.iconData = iconData
         self.createdAt = createdAt
         self.generatedAppPath = generatedAppPath

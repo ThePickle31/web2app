@@ -4,6 +4,7 @@ struct ContentView: View {
     @Environment(WebAppStore.self) private var store
     @State private var selectedAppID: WebApp.ID?
     @State private var isCreateSheetPresented = false
+    @State private var droppedURL: URL?
 
     var body: some View {
         NavigationSplitView {
@@ -29,11 +30,40 @@ struct ContentView: View {
                 }
             }
         }
-        .sheet(isPresented: $isCreateSheetPresented) {
-            CreateAppView()
+        .sheet(isPresented: $isCreateSheetPresented, onDismiss: { droppedURL = nil }) {
+            CreateAppView(initialURL: droppedURL)
         }
         .onDrop(of: [.url], isTargeted: nil) { providers in
             handleURLDrop(providers)
+        }
+        .onReceive(NotificationCenter.default.publisher(for: .createNewWebApp)) { _ in
+            isCreateSheetPresented = true
+        }
+        .onReceive(NotificationCenter.default.publisher(for: .importURLFromClipboard)) { _ in
+            importFromClipboard()
+        }
+        .onReceive(NotificationCenter.default.publisher(for: .editSelectedApp)) { _ in
+            // Handled by SidebarView/DetailView which own the edit sheet
+        }
+        .onReceive(NotificationCenter.default.publisher(for: .deleteSelectedApp)) { _ in
+            if let selectedAppID, let app = store.apps.first(where: { $0.id == selectedAppID }) {
+                store.delete(app)
+                self.selectedAppID = nil
+            }
+        }
+        .onReceive(NotificationCenter.default.publisher(for: .revealSelectedAppInFinder)) { _ in
+            if let selectedAppID,
+               let app = store.apps.first(where: { $0.id == selectedAppID }),
+               let path = app.generatedAppPath {
+                NSWorkspace.shared.selectFile(path, inFileViewerRootedAtPath: "")
+            }
+        }
+        .onReceive(NotificationCenter.default.publisher(for: .openSelectedGeneratedApp)) { _ in
+            if let selectedAppID,
+               let app = store.apps.first(where: { $0.id == selectedAppID }),
+               let path = app.generatedAppPath {
+                NSWorkspace.shared.open(URL(fileURLWithPath: path))
+            }
         }
     }
 
@@ -51,11 +81,23 @@ struct ContentView: View {
         for provider in providers {
             _ = provider.loadObject(ofClass: URL.self) { url, _ in
                 guard let url else { return }
-                DispatchQueue.main.async {
+                Task { @MainActor in
+                    droppedURL = url
                     isCreateSheetPresented = true
                 }
             }
         }
         return true
+    }
+
+    private func importFromClipboard() {
+        guard let string = NSPasteboard.general.string(forType: .string),
+              let url = URL(string: string),
+              let scheme = url.scheme?.lowercased(),
+              scheme == "http" || scheme == "https" else {
+            return
+        }
+        droppedURL = url
+        isCreateSheetPresented = true
     }
 }

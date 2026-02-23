@@ -36,7 +36,8 @@ struct AppGenerator {
         let fileManager = FileManager.default
 
         // Step 0: Remove any existing .app with the same name
-        let existingAppURL = outputDirectory.appendingPathComponent("\(webApp.name).app")
+        let safeName = BundleStructureBuilder.sanitizeAppName(webApp.name)
+        let existingAppURL = outputDirectory.appendingPathComponent("\(safeName).app")
         if fileManager.fileExists(atPath: existingAppURL.path(percentEncoded: false)) {
             try fileManager.removeItem(at: existingAppURL)
             logger.info("Removed existing \(webApp.name).app")
@@ -79,7 +80,7 @@ struct AppGenerator {
 
         // Step 6: Generate and write .icns if icon data is provided
         if let iconData, let image = NSImage(data: iconData) {
-            let icnsData = try IconGenerator.generateICNS(from: image)
+            let icnsData = try await IconGenerator.generateICNS(from: image)
             let icnsURL = resourcesURL.appendingPathComponent("AppIcon.icns")
             try icnsData.write(to: icnsURL)
             logger.info("Wrote AppIcon.icns to bundle")
@@ -88,10 +89,13 @@ struct AppGenerator {
         // Step 7: Code sign the bundle
         try await CodeSigner.sign(appURL: appURL)
 
-        // Step 8: Remove quarantine attribute so macOS doesn't block the app
+        // Step 8: Verify signature before removing quarantine
+        try await CodeSigner.verify(appURL: appURL)
+
+        // Step 9: Remove quarantine attribute so macOS doesn't block the app
         removeQuarantine(at: appURL)
 
-        // Step 9: Return the .app URL
+        // Step 10: Return the .app URL
         logger.info("Successfully generated \(webApp.name).app")
         return appURL
     }

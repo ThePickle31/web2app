@@ -70,14 +70,14 @@ struct LauncherMenus {
 
         let undoItem = NSMenuItem(
             title: "Undo",
-            action: Selector(("undo:")),
+            action: NSSelectorFromString("undo:"),
             keyEquivalent: "z"
         )
         menu.addItem(undoItem)
 
         let redoItem = NSMenuItem(
             title: "Redo",
-            action: Selector(("redo:")),
+            action: NSSelectorFromString("redo:"),
             keyEquivalent: "z"
         )
         redoItem.keyEquivalentModifierMask = [.command, .shift]

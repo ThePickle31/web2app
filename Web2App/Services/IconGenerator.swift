@@ -21,7 +21,7 @@ struct IconGenerator {
     /// Converts an NSImage into .icns data using iconutil.
     /// Creates a temporary .iconset directory with properly named PNGs,
     /// then runs `iconutil -c icns` to produce the .icns file.
-    static func generateICNS(from image: NSImage) throws -> Data {
+    static func generateICNS(from image: NSImage) async throws -> Data {
         let fileManager = FileManager.default
         let tempDirectory = fileManager.temporaryDirectory
             .appendingPathComponent(UUID().uuidString, isDirectory: true)
@@ -56,14 +56,22 @@ struct IconGenerator {
         let errorPipe = Pipe()
         process.standardError = errorPipe
 
-        try process.run()
-        process.waitUntilExit()
-
-        guard process.terminationStatus == 0 else {
-            let errorData = errorPipe.fileHandleForReading.readDataToEndOfFile()
-            let errorMessage = String(data: errorData, encoding: .utf8) ?? "Unknown error"
-            logger.error("iconutil failed: \(errorMessage)")
-            throw IconGeneratorError.iconutilFailed(errorMessage)
+        try await withCheckedThrowingContinuation { (continuation: CheckedContinuation<Void, Error>) in
+            process.terminationHandler = { proc in
+                if proc.terminationStatus == 0 {
+                    continuation.resume()
+                } else {
+                    let errorData = errorPipe.fileHandleForReading.readDataToEndOfFile()
+                    let errorMessage = String(data: errorData, encoding: .utf8) ?? "Unknown error"
+                    logger.error("iconutil failed: \(errorMessage)")
+                    continuation.resume(throwing: IconGeneratorError.iconutilFailed(errorMessage))
+                }
+            }
+            do {
+                try process.run()
+            } catch {
+                continuation.resume(throwing: error)
+            }
         }
 
         let icnsData = try Data(contentsOf: icnsOutputURL)

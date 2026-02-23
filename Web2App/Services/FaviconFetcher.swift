@@ -4,6 +4,31 @@ import os
 actor FaviconFetcher {
     private static let logger = Logger(subsystem: "com.web2app", category: "FaviconFetcher")
 
+    /// Minimum data size to consider a downloaded icon valid.
+    /// Small files (< 500 bytes) are typically placeholder or error responses.
+    private static let minimumIconDataSize = 500
+
+    private static let iconLinkPattern = try! NSRegularExpression(
+        pattern: #"<link[^>]*rel\s*=\s*"[^"]*icon[^"]*"[^>]*>"#,
+        options: .caseInsensitive
+    )
+
+    private static let manifestPatterns: [NSRegularExpression] = [
+        try! NSRegularExpression(
+            pattern: #"<link[^>]*rel\s*=\s*"manifest"[^>]*href\s*=\s*"([^"]+)"[^>]*/?\s*>"#,
+            options: .caseInsensitive
+        ),
+        try! NSRegularExpression(
+            pattern: #"<link[^>]*href\s*=\s*"([^"]+)"[^>]*rel\s*=\s*"manifest"[^>]*/?\s*>"#,
+            options: .caseInsensitive
+        )
+    ]
+
+    /// Hosts that should never be fetched (SSRF protection).
+    private static let blockedHosts: Set<String> = [
+        "localhost", "127.0.0.1", "0.0.0.0", "169.254.169.254", "[::1]"
+    ]
+
     private let session: URLSession
 
     init(session: URLSession = .shared) {
@@ -16,10 +41,10 @@ actor FaviconFetcher {
         guard let host = url.host() else { return nil }
         let baseURL = url.scheme.map { "\($0)://\(host)" } ?? "https://\(host)"
 
-        // Fetch the page HTML once — multiple strategies parse it
+        // Fetch the page HTML once -- multiple strategies parse it
         let html = await fetchHTML(from: baseURL)
 
-        // Strategy 1: Web App Manifest — often has 512x512 icons
+        // Strategy 1: Web App Manifest -- often has 512x512 icons
         if let html, let data = await fetchFromManifest(html: html, baseURL: baseURL) {
             Self.logger.info("Fetched icon via web manifest for \(host)")
             return data
@@ -40,6 +65,7 @@ actor FaviconFetcher {
         }
 
         // Strategy 4: Google Favicon API at max size
+        // Note: This sends the domain to Google's servers
         if let data = await downloadData(from: "https://www.google.com/s2/favicons?domain=\(host)&sz=256") {
             Self.logger.info("Fetched icon via Google API for \(host)")
             return data
@@ -58,13 +84,18 @@ actor FaviconFetcher {
     // MARK: - Strategy: Web App Manifest
 
     private func fetchFromManifest(html: String, baseURL: String) async -> Data? {
-        // Find <link rel="manifest" href="...">
-        let patterns = [
-            #"<link[^>]*rel\s*=\s*"manifest"[^>]*href\s*=\s*"([^"]+)"[^>]*/?\s*>"#,
-            #"<link[^>]*href\s*=\s*"([^"]+)"[^>]*rel\s*=\s*"manifest"[^>]*/?\s*>"#
-        ]
+        let range = NSRange(html.startIndex..., in: html)
 
-        guard let manifestHref = firstMatch(patterns: patterns, in: html) else { return nil }
+        var manifestHref: String?
+        for regex in Self.manifestPatterns {
+            if let match = regex.firstMatch(in: html, range: range),
+               let hrefRange = Range(match.range(at: 1), in: html) {
+                manifestHref = String(html[hrefRange])
+                break
+            }
+        }
+
+        guard let manifestHref else { return nil }
         let manifestURL = resolveURL(manifestHref, base: baseURL)
 
         guard let manifestData = await downloadData(from: manifestURL),
@@ -81,7 +112,7 @@ actor FaviconFetcher {
         for icon in sorted {
             guard let src = icon["src"] as? String else { continue }
             let iconURL = resolveURL(src, base: baseURL)
-            if let data = await downloadData(from: iconURL), data.count > 500 {
+            if let data = await downloadData(from: iconURL), data.count > Self.minimumIconDataSize {
                 return data
             }
         }
@@ -99,14 +130,8 @@ actor FaviconFetcher {
     // MARK: - Strategy: Largest HTML Icon
 
     private func fetchLargestHTMLIcon(html: String, baseURL: String) async -> Data? {
-        // Find all <link> tags with rel containing "icon"
-        let pattern = #"<link[^>]*rel\s*=\s*"[^"]*icon[^"]*"[^>]*>"#
-        guard let regex = try? NSRegularExpression(pattern: pattern, options: .caseInsensitive) else {
-            return nil
-        }
-
         let range = NSRange(html.startIndex..., in: html)
-        let matches = regex.matches(in: html, range: range)
+        let matches = Self.iconLinkPattern.matches(in: html, range: range)
 
         struct IconCandidate {
             let href: String
@@ -119,30 +144,26 @@ actor FaviconFetcher {
             guard let matchRange = Range(match.range, in: html) else { continue }
             let tag = String(html[matchRange])
 
-            // Extract href
             guard let href = extractAttribute("href", from: tag) else { continue }
 
-            // Extract size from sizes attribute or type
             let size: Int
             if let sizes = extractAttribute("sizes", from: tag) {
                 let parts = sizes.lowercased().split(separator: "x")
                 size = Int(parts.first ?? "0") ?? 0
             } else if tag.contains("svg") || tag.contains("image/svg") {
-                size = 1024 // SVGs scale infinitely, prefer them
+                size = 1024
             } else {
-                size = 1 // Unknown size, low priority
+                size = 1
             }
 
             candidates.append(IconCandidate(href: href, size: size))
         }
 
-        // Sort by size descending
         let sorted = candidates.sorted { $0.size > $1.size }
 
         for candidate in sorted {
             let iconURL = resolveURL(candidate.href, base: baseURL)
-            // Skip tiny favicons (likely 16x16 .ico files)
-            if let data = await downloadData(from: iconURL), data.count > 500 {
+            if let data = await downloadData(from: iconURL), data.count > Self.minimumIconDataSize {
                 return data
             }
         }
@@ -152,8 +173,17 @@ actor FaviconFetcher {
 
     // MARK: - Helpers
 
+    private func isURLSafe(_ url: URL) -> Bool {
+        guard let scheme = url.scheme?.lowercased(),
+              scheme == "http" || scheme == "https",
+              let host = url.host() else {
+            return false
+        }
+        return !Self.blockedHosts.contains(host)
+    }
+
     private func fetchHTML(from urlString: String) async -> String? {
-        guard let url = URL(string: urlString) else { return nil }
+        guard let url = URL(string: urlString), isURLSafe(url) else { return nil }
         guard let (data, _) = try? await session.data(from: url),
               let html = String(data: data, encoding: .utf8) else {
             return nil
@@ -162,7 +192,7 @@ actor FaviconFetcher {
     }
 
     private func downloadData(from urlString: String) async -> Data? {
-        guard let url = URL(string: urlString) else { return nil }
+        guard let url = URL(string: urlString), isURLSafe(url) else { return nil }
         do {
             let (data, response) = try await session.data(from: url)
             guard let httpResponse = response as? HTTPURLResponse,
@@ -187,19 +217,6 @@ actor FaviconFetcher {
         } else {
             return "\(base)/\(href)"
         }
-    }
-
-    private func firstMatch(patterns: [String], in text: String) -> String? {
-        let range = NSRange(text.startIndex..., in: text)
-        for pattern in patterns {
-            guard let regex = try? NSRegularExpression(pattern: pattern, options: .caseInsensitive),
-                  let match = regex.firstMatch(in: text, range: range),
-                  let hrefRange = Range(match.range(at: 1), in: text) else {
-                continue
-            }
-            return String(text[hrefRange])
-        }
-        return nil
     }
 
     private func extractAttribute(_ name: String, from tag: String) -> String? {

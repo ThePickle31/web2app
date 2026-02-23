@@ -2,6 +2,7 @@ import Foundation
 import Observation
 import os
 
+@MainActor
 @Observable
 final class WebAppStore {
     private static let logger = Logger(subsystem: "com.web2app", category: "WebAppStore")
@@ -43,7 +44,27 @@ final class WebAppStore {
 
     private func removeGeneratedApp(_ app: WebApp) {
         guard let path = app.generatedAppPath else { return }
-        let url = URL(fileURLWithPath: path)
+
+        let url = URL(fileURLWithPath: path).standardizedFileURL
+
+        // Validate the path ends with .app to prevent deleting arbitrary files
+        guard url.pathExtension == "app" else {
+            Self.logger.error("Refusing to delete non-.app path: \(path)")
+            return
+        }
+
+        // Validate path is within expected directories (Application Support or user-selected)
+        let expectedBase = Self.defaultStorageURL()
+            .deletingLastPathComponent()
+            .standardizedFileURL
+        let homePath = FileManager.default.homeDirectoryForCurrentUser.standardizedFileURL.path()
+        let urlPath = url.path()
+
+        guard urlPath.hasPrefix(expectedBase.path()) || urlPath.hasPrefix(homePath) else {
+            Self.logger.error("Refusing to delete app outside user directory: \(path)")
+            return
+        }
+
         guard FileManager.default.fileExists(atPath: path) else { return }
         do {
             try FileManager.default.removeItem(at: url)
@@ -102,7 +123,11 @@ final class WebAppStore {
     // MARK: - Storage Location
 
     private static func defaultStorageURL() -> URL {
-        let appSupport = FileManager.default.urls(for: .applicationSupportDirectory, in: .userDomainMask).first!
+        guard let appSupport = FileManager.default.urls(
+            for: .applicationSupportDirectory, in: .userDomainMask
+        ).first else {
+            fatalError("Application Support directory not available")
+        }
         return appSupport
             .appendingPathComponent("Web2App", isDirectory: true)
             .appendingPathComponent("webapps.json")

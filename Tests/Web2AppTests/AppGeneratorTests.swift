@@ -66,7 +66,8 @@ struct AppGeneratorTests {
 
         let plistURL = appURL.appendingPathComponent("Contents/Info.plist")
         let plistData = try Data(contentsOf: plistURL)
-        let plist = try PropertyListSerialization.propertyList(from: plistData, format: nil) as! [String: Any]
+        let plistRaw = try PropertyListSerialization.propertyList(from: plistData, format: nil)
+        let plist = try #require(plistRaw as? [String: Any])
 
         #expect(plist["CFBundleIdentifier"] as? String == "com.test.myapp")
         #expect(plist["CFBundleName"] as? String == "TestApp")
@@ -100,7 +101,8 @@ struct AppGeneratorTests {
 
         let configURL = appURL.appendingPathComponent("Contents/Resources/config.plist")
         let configData = try Data(contentsOf: configURL)
-        let config = try PropertyListSerialization.propertyList(from: configData, format: nil) as! [String: Any]
+        let configRaw = try PropertyListSerialization.propertyList(from: configData, format: nil)
+        let config = try #require(configRaw as? [String: Any])
 
         #expect(config["URL"] as? String == "https://news.ycombinator.com")
         #expect(config["AppName"] as? String == "TestApp")

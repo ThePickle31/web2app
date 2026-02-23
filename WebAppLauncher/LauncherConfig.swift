@@ -11,6 +11,9 @@ struct LauncherConfig {
               let dict = try? PropertyListSerialization.propertyList(from: data, format: nil) as? [String: Any],
               let urlString = dict["URL"] as? String,
               let url = URL(string: urlString),
+              let scheme = url.scheme?.lowercased(),
+              scheme == "http" || scheme == "https",
+              url.host() != nil,
               let appName = dict["AppName"] as? String else {
             throw LauncherError.configNotFound
         }

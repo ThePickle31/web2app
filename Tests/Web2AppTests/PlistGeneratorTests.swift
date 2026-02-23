@@ -12,7 +12,8 @@ struct PlistGeneratorTests {
             bundleIdentifier: "com.test.app"
         )
 
-        let plist = try PropertyListSerialization.propertyList(from: data, format: nil) as! [String: Any]
+        let raw = try PropertyListSerialization.propertyList(from: data, format: nil)
+        let plist = try #require(raw as? [String: Any])
 
         #expect(plist["CFBundleExecutable"] as? String == "WebAppLauncher")
         #expect(plist["CFBundleName"] as? String == "TestApp")
@@ -29,7 +30,8 @@ struct PlistGeneratorTests {
             bundleIdentifier: "com.test.app"
         )
 
-        let plist = try PropertyListSerialization.propertyList(from: data, format: nil) as! [String: Any]
+        let raw = try PropertyListSerialization.propertyList(from: data, format: nil)
+        let plist = try #require(raw as? [String: Any])
         let ats = plist["NSAppTransportSecurity"] as? [String: Any]
 
         #expect(ats?["NSAllowsArbitraryLoads"] as? Bool == true)
@@ -44,7 +46,8 @@ struct PlistGeneratorTests {
             allowedDomains: ["cdn.example.com"]
         )
 
-        let plist = try PropertyListSerialization.propertyList(from: data, format: nil) as! [String: Any]
+        let raw = try PropertyListSerialization.propertyList(from: data, format: nil)
+        let plist = try #require(raw as? [String: Any])
 
         #expect(plist["URL"] as? String == "https://example.com")
         #expect(plist["AppName"] as? String == "Example")
@@ -60,7 +63,8 @@ struct PlistGeneratorTests {
             allowedDomains: []
         )
 
-        let plist = try PropertyListSerialization.propertyList(from: data, format: nil) as! [String: Any]
+        let raw = try PropertyListSerialization.propertyList(from: data, format: nil)
+        let plist = try #require(raw as? [String: Any])
 
         #expect((plist["AllowedDomains"] as? [String])?.isEmpty == true)
     }

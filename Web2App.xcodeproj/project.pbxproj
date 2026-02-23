@@ -43,6 +43,9 @@
 		A10000000000000000000052 /* PlistGeneratorTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = B10000000000000000000052 /* PlistGeneratorTests.swift */; };
 		A10000000000000000000053 /* BundleStructureBuilderTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = B10000000000000000000053 /* BundleStructureBuilderTests.swift */; };
 		A10000000000000000000054 /* AppGeneratorTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = B10000000000000000000054 /* AppGeneratorTests.swift */; };
+		A10000000000000000000080 /* WebAppFormView.swift in Sources */ = {isa = PBXBuildFile; fileRef = B10000000000000000000080 /* WebAppFormView.swift */; };
+		A10000000000000000000055 /* WebAppStoreTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = B10000000000000000000055 /* WebAppStoreTests.swift */; };
+		A10000000000000000000056 /* BundleStructureSanitizationTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = B10000000000000000000056 /* BundleStructureSanitizationTests.swift */; };
 /* End PBXBuildFile section */
 
 /* Begin PBXContainerItemProxy section */
@@ -115,6 +118,9 @@
 		B10000000000000000000052 /* PlistGeneratorTests.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = PlistGeneratorTests.swift; sourceTree = "<group>"; };
 		B10000000000000000000053 /* BundleStructureBuilderTests.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = BundleStructureBuilderTests.swift; sourceTree = "<group>"; };
 		B10000000000000000000054 /* AppGeneratorTests.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = AppGeneratorTests.swift; sourceTree = "<group>"; };
+		B10000000000000000000080 /* WebAppFormView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = WebAppFormView.swift; sourceTree = "<group>"; };
+		B10000000000000000000055 /* WebAppStoreTests.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = WebAppStoreTests.swift; sourceTree = "<group>"; };
+		B10000000000000000000056 /* BundleStructureSanitizationTests.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = BundleStructureSanitizationTests.swift; sourceTree = "<group>"; };
 /* End PBXFileReference section */
 
 /* Begin PBXFrameworksBuildPhase section */
@@ -199,6 +205,7 @@
 			isa = PBXGroup;
 			children = (
 				B1000000000000000000000B /* WebPreviewView.swift */,
+				B10000000000000000000080 /* WebAppFormView.swift */,
 			);
 			path = Components;
 			sourceTree = "<group>";
@@ -270,6 +277,8 @@
 				B10000000000000000000052 /* PlistGeneratorTests.swift */,
 				B10000000000000000000053 /* BundleStructureBuilderTests.swift */,
 				B10000000000000000000054 /* AppGeneratorTests.swift */,
+				B10000000000000000000055 /* WebAppStoreTests.swift */,
+				B10000000000000000000056 /* BundleStructureSanitizationTests.swift */,
 			);
 			path = Web2AppTests;
 			sourceTree = "<group>";
@@ -428,6 +437,7 @@
 				A10000000000000000000013 /* URLValidator.swift in Sources */,
 				A10000000000000000000014 /* NSImageExtensions.swift in Sources */,
 				A10000000000000000000070 /* GlassModifier.swift in Sources */,
+				A10000000000000000000080 /* WebAppFormView.swift in Sources */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};
@@ -451,6 +461,8 @@
 				A10000000000000000000052 /* PlistGeneratorTests.swift in Sources */,
 				A10000000000000000000053 /* BundleStructureBuilderTests.swift in Sources */,
 				A10000000000000000000054 /* AppGeneratorTests.swift in Sources */,
+				A10000000000000000000055 /* WebAppStoreTests.swift in Sources */,
+				A10000000000000000000056 /* BundleStructureSanitizationTests.swift in Sources */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};
