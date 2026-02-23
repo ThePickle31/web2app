@@ -2,6 +2,10 @@ name: Build DMG
 
 on:
   workflow_dispatch:
+    inputs:
+      version:
+        description: "Version number (e.g. 1.0.0)"
+        required: true
 
 permissions:
   contents: write
@@ -45,7 +49,7 @@ jobs:
         env:
           GH_TOKEN: ${{ github.token }}
         run: |
-          TAG="v1.0.0-build.${{ github.run_number }}"
+          TAG="v${{ github.event.inputs.version }}"
           gh release create "$TAG" Web2App.dmg \
             --title "Web2App $TAG" \
             --notes "Unsigned build — right-click > Open to bypass Gatekeeper on first launch."
