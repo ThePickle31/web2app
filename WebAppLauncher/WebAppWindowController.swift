@@ -73,9 +73,11 @@ class WebAppWindowController: NSObject, NSApplicationDelegate, NSWindowDelegate,
 
         window.contentView!.addSubview(webView)
 
-        titleObservation = webView.observe(\.title, options: [.new]) { [weak self] _, change in
-            guard let self = self, let title = change.newValue as? String, !title.isEmpty else { return }
-            self.window.title = title
+        titleObservation = webView.observe(\.title, options: [.new]) { _, change in
+            guard let title = change.newValue as? String, !title.isEmpty else { return }
+            Task { @MainActor [weak self] in
+                self?.window.title = title
+            }
         }
 
         window.makeKeyAndOrderFront(nil)
@@ -92,7 +94,7 @@ class WebAppWindowController: NSObject, NSApplicationDelegate, NSWindowDelegate,
     func webView(
         _ webView: WKWebView,
         decidePolicyFor navigationAction: WKNavigationAction,
-        decisionHandler: @escaping (WKNavigationActionPolicy) -> Void
+        decisionHandler: @escaping @MainActor @Sendable (WKNavigationActionPolicy) -> Void
     ) {
         decisionHandler(.allow)
     }
@@ -116,7 +118,7 @@ class WebAppWindowController: NSObject, NSApplicationDelegate, NSWindowDelegate,
         _ webView: WKWebView,
         runJavaScriptAlertPanelWithMessage message: String,
         initiatedByFrame frame: WKFrameInfo,
-        completionHandler: @escaping () -> Void
+        completionHandler: @escaping @MainActor @Sendable () -> Void
     ) {
         let alert = NSAlert()
         alert.messageText = config.appName
@@ -130,7 +132,7 @@ class WebAppWindowController: NSObject, NSApplicationDelegate, NSWindowDelegate,
         _ webView: WKWebView,
         runJavaScriptConfirmPanelWithMessage message: String,
         initiatedByFrame frame: WKFrameInfo,
-        completionHandler: @escaping (Bool) -> Void
+        completionHandler: @escaping @MainActor @Sendable (Bool) -> Void
     ) {
         let alert = NSAlert()
         alert.messageText = config.appName
@@ -146,7 +148,7 @@ class WebAppWindowController: NSObject, NSApplicationDelegate, NSWindowDelegate,
         runJavaScriptTextInputPanelWithPrompt prompt: String,
         defaultText: String?,
         initiatedByFrame frame: WKFrameInfo,
-        completionHandler: @escaping (String?) -> Void
+        completionHandler: @escaping @MainActor @Sendable (String?) -> Void
     ) {
         let alert = NSAlert()
         alert.messageText = config.appName
