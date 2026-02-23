@@ -48,5 +48,5 @@ jobs:
         run: |
           TAG="v${{ github.event.inputs.version }}"
           gh release create "$TAG" Web2App.dmg \
-            --title "Web2App $TAG" \
-            --notes "Unsigned build — right-click > Open to bypass Gatekeeper on first launch."
+            --title "${{ github.event.inputs.version }}" \
+            --notes ""
