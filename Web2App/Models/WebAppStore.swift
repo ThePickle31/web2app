@@ -47,25 +47,26 @@ final class WebAppStore {
 
         let url = URL(fileURLWithPath: path).standardizedFileURL
 
-        // Validate the path ends with .app to prevent deleting arbitrary files
         guard url.pathExtension == "app" else {
             Self.logger.error("Refusing to delete non-.app path: \(path)")
             return
         }
 
-        // Validate path is within expected directories (Application Support or user-selected)
+        // Validate path is within expected directories
         let expectedBase = Self.defaultStorageURL()
             .deletingLastPathComponent()
             .standardizedFileURL
         let homePath = FileManager.default.homeDirectoryForCurrentUser.standardizedFileURL.path()
+        let applicationsPath = "/Applications/"
         let urlPath = url.path()
 
-        guard urlPath.hasPrefix(expectedBase.path()) || urlPath.hasPrefix(homePath) else {
-            Self.logger.error("Refusing to delete app outside user directory: \(path)")
+        guard urlPath.hasPrefix(expectedBase.path()) || urlPath.hasPrefix(homePath) || urlPath.hasPrefix(applicationsPath) else {
+            Self.logger.error("Refusing to delete app outside expected directory: \(path)")
             return
         }
 
         guard FileManager.default.fileExists(atPath: path) else { return }
+
         do {
             try FileManager.default.removeItem(at: url)
             Self.logger.info("Deleted generated app at \(path)")

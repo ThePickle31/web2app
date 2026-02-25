@@ -6,8 +6,8 @@ import os
 struct AppGenerator {
 
     /// Recursively removes the com.apple.quarantine extended attribute
-    /// using the C-level removexattr() syscall, which works inside the sandbox.
-    private static func removeQuarantine(at url: URL) {
+    /// using the C-level removexattr() syscall, which works inside the sandbox container.
+    static func removeQuarantine(at url: URL) {
         let path = url.path(percentEncoded: false)
         removexattr(path, "com.apple.quarantine", XATTR_NOFOLLOW)
 
@@ -16,6 +16,17 @@ struct AppGenerator {
             let filePath = fileURL.path(percentEncoded: false)
             removexattr(filePath, "com.apple.quarantine", XATTR_NOFOLLOW)
         }
+    }
+
+    /// Removes quarantine via xattr command-line tool, which works for paths
+    /// outside the sandbox container (e.g. /Applications) where the C-level
+    /// removexattr() syscall may be blocked.
+    static func removeQuarantineViaProcess(at url: URL) {
+        let process = Process()
+        process.executableURL = URL(fileURLWithPath: "/usr/bin/xattr")
+        process.arguments = ["-dr", "com.apple.quarantine", url.path(percentEncoded: false)]
+        try? process.run()
+        process.waitUntilExit()
     }
     private static let logger = Logger(subsystem: "com.web2app", category: "AppGenerator")
 

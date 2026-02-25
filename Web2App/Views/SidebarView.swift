@@ -37,6 +37,26 @@ struct SidebarView: View {
         }
     }
 
+    private func moveToApplications(_ app: WebApp) {
+        guard let path = app.generatedAppPath else { return }
+        let sourceURL = URL(fileURLWithPath: path)
+        let destinationURL = URL(fileURLWithPath: "/Applications").appendingPathComponent(sourceURL.lastPathComponent)
+
+        do {
+            if FileManager.default.fileExists(atPath: destinationURL.path()) {
+                try FileManager.default.removeItem(at: destinationURL)
+            }
+            try FileManager.default.moveItem(at: sourceURL, to: destinationURL)
+            AppGenerator.removeQuarantine(at: destinationURL)
+
+            var updated = app
+            updated.generatedAppPath = destinationURL.path(percentEncoded: false)
+            store.update(updated)
+        } catch {
+            // Move failed silently — user can retry
+        }
+    }
+
     @ViewBuilder
     private func contextMenu(for app: WebApp) -> some View {
         if let path = app.generatedAppPath {
@@ -47,6 +67,12 @@ struct SidebarView: View {
 
             Button("Reveal in Finder") {
                 NSWorkspace.shared.selectFile(path, inFileViewerRootedAtPath: "")
+            }
+
+            if !path.hasPrefix("/Applications/") {
+                Button("Move to Applications") {
+                    moveToApplications(app)
+                }
             }
         }
 
