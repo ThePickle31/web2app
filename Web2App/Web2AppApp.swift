@@ -6,6 +6,12 @@ struct Web2AppApp: App {
     @State private var updater = AppUpdater()
     @AppStorage("autoCheckForUpdates") private var autoCheckForUpdates = true
 
+    init() {
+        UserDefaults.standard.register(defaults: [
+            "updateChannel": AppUpdater.detectedChannel
+        ])
+    }
+
     var body: some Scene {
         WindowGroup {
             ContentView()

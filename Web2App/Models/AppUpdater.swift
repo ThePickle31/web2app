@@ -25,6 +25,12 @@ final class AppUpdater {
     private var downloadedDMGURL: URL?
     private var updateTask: Task<Void, Never>?
 
+    /// Returns "beta" if the current version contains a pre-release identifier, otherwise "stable".
+    static var detectedChannel: String {
+        let version = Bundle.main.object(forInfoDictionaryKey: "CFBundleShortVersionString") as? String ?? ""
+        return version.contains("beta") ? "beta" : "stable"
+    }
+
     var currentVersion: String {
         Bundle.main.object(forInfoDictionaryKey: "CFBundleShortVersionString") as? String ?? "Unknown"
     }

@@ -80,7 +80,7 @@ private struct AdvancedSettingsTab: View {
 private struct UpdatesSettingsTab: View {
     @Bindable var updater: AppUpdater
     @AppStorage("autoCheckForUpdates") private var autoCheckForUpdates = true
-    @AppStorage("updateChannel") private var updateChannel = "stable"
+    @AppStorage("updateChannel") private var updateChannel = AppUpdater.detectedChannel
 
     var body: some View {
         Form {
