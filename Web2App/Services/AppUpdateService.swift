@@ -81,7 +81,7 @@ actor AppUpdateService {
             json = obj
         } else {
             guard let array = try? JSONSerialization.jsonObject(with: data) as? [[String: Any]],
-                  let first = array.first else {
+                  let first = array.first(where: { $0["prerelease"] as? Bool == true }) else {
                 throw AppUpdateServiceError.noReleasesFound
             }
             json = first
