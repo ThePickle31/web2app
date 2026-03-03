@@ -1,0 +1,70 @@
+[changelog]
+header = ""
+body = """
+{%- for group, commits in commits | group_by(attribute="group") %}
+## {{ group }}
+{% for commit in commits %}
+- {% if commit.scope %}**{{ commit.scope | title }}:** {% endif %}\
+{{ commit.message | upper_first }}\
+{% if commit.remote.pr_number %} ([#{{ commit.remote.pr_number }}](https://github.com/ThePickle31/web2app/pull/{{ commit.remote.pr_number }})){% endif %}\
+{% if commit.remote.username and commit.remote.username != "ThePickle31" %} Thanks @{{ commit.remote.username }}.{% endif %}
+{%- endfor %}
+{% endfor %}
+"""
+trim = true
+footer = ""
+
+[git]
+conventional_commits = true
+filter_unconventional = true
+filter_commits = true
+tag_pattern = "v[0-9].*"
+sort_commits = "oldest"
+
+[[git.commit_parsers]]
+message = "^.*!:"
+group = "Breaking"
+
+[[git.commit_parsers]]
+body = "BREAKING CHANGE"
+group = "Breaking"
+
+[[git.commit_parsers]]
+message = "^feat"
+group = "Changes"
+
+[[git.commit_parsers]]
+message = "^fix"
+group = "Fixes"
+
+[[git.commit_parsers]]
+message = "^refactor"
+group = "Changes"
+
+[[git.commit_parsers]]
+message = "^perf"
+group = "Changes"
+
+[[git.commit_parsers]]
+message = "^chore"
+skip = true
+
+[[git.commit_parsers]]
+message = "^ci"
+skip = true
+
+[[git.commit_parsers]]
+message = "^docs"
+skip = true
+
+[[git.commit_parsers]]
+message = "^test"
+skip = true
+
+[[git.commit_parsers]]
+message = "^Merge"
+skip = true
+
+[remote.github]
+owner = "ThePickle31"
+repo = "web2app"

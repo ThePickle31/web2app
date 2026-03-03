@@ -25,6 +25,12 @@ final class AppUpdater {
     private var downloadedDMGURL: URL?
     private var updateTask: Task<Void, Never>?
 
+    /// Returns "beta" if the current version contains a pre-release identifier, otherwise "stable".
+    static var detectedChannel: String {
+        let version = Bundle.main.object(forInfoDictionaryKey: "CFBundleShortVersionString") as? String ?? ""
+        return version.contains("beta") ? "beta" : "stable"
+    }
+
     var currentVersion: String {
         Bundle.main.object(forInfoDictionaryKey: "CFBundleShortVersionString") as? String ?? "Unknown"
     }
@@ -37,15 +43,21 @@ final class AppUpdater {
             status = .checking
 
             do {
-                let release = try await service.checkForLatestRelease()
+                let channelRaw = UserDefaults.standard.string(forKey: "updateChannel") ?? "stable"
+                let channel = UpdateChannel(rawValue: channelRaw) ?? .stable
+                let release = try await service.checkForLatestRelease(channel: channel)
                 if Task.isCancelled { return }
 
-                let isNewer = try VersionComparator.isNewer(
-                    remote: release.version,
-                    thanLocal: currentVersion
-                )
+                let remoteParsed = try VersionComparator.parse(release.version)
+                let localParsed = try VersionComparator.parse(currentVersion)
 
-                if isNewer {
+                let isNewer = remoteParsed > localParsed
+                // Offer update if user switched to stable but is running a pre-release
+                let shouldSwitchToStable = channel == .stable
+                    && localParsed.prerelease != nil
+                    && remoteParsed.prerelease == nil
+
+                if isNewer || shouldSwitchToStable {
                     availableRelease = release
                     status = .updateAvailable(version: release.version)
                     Self.logger.info("Update available: \(release.version)")

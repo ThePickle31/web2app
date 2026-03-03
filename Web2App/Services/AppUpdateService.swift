@@ -1,11 +1,17 @@
 import Foundation
 import os
 
+enum UpdateChannel: String, Sendable {
+    case stable
+    case beta
+}
+
 struct GitHubRelease: Sendable {
     let tagName: String
     let version: String
     let dmgDownloadURL: URL
     let releaseNotes: String?
+    let prerelease: Bool
 }
 
 enum AppUpdateServiceError: LocalizedError {
@@ -39,7 +45,8 @@ enum AppUpdateServiceError: LocalizedError {
 
 actor AppUpdateService {
     private static let logger = Logger(subsystem: "com.web2app", category: "AppUpdateService")
-    private static let releasesURL = URL(string: "https://api.github.com/repos/ThePickle31/web2app/releases/latest")!
+    private static let latestReleaseURL = URL(string: "https://api.github.com/repos/ThePickle31/web2app/releases/latest")!
+    private static let allReleasesURL = URL(string: "https://api.github.com/repos/ThePickle31/web2app/releases")!
 
     private let session: URLSession
 
@@ -49,8 +56,9 @@ actor AppUpdateService {
 
     // MARK: - Check for Latest Release
 
-    func checkForLatestRelease() async throws -> GitHubRelease {
-        var request = URLRequest(url: Self.releasesURL)
+    func checkForLatestRelease(channel: UpdateChannel = .stable) async throws -> GitHubRelease {
+        let url = channel == .stable ? Self.latestReleaseURL : Self.allReleasesURL
+        var request = URLRequest(url: url)
         request.setValue("application/vnd.github+json", forHTTPHeaderField: "Accept")
         request.setValue("Web2App-Updater", forHTTPHeaderField: "User-Agent")
 
@@ -64,8 +72,22 @@ actor AppUpdateService {
             throw AppUpdateServiceError.invalidResponse(httpResponse.statusCode)
         }
 
-        guard let json = try? JSONSerialization.jsonObject(with: data) as? [String: Any],
-              let tagName = json["tag_name"] as? String,
+        let json: [String: Any]
+
+        if channel == .stable {
+            guard let obj = try? JSONSerialization.jsonObject(with: data) as? [String: Any] else {
+                throw AppUpdateServiceError.noReleasesFound
+            }
+            json = obj
+        } else {
+            guard let array = try? JSONSerialization.jsonObject(with: data) as? [[String: Any]],
+                  let first = array.first(where: { $0["prerelease"] as? Bool == true }) else {
+                throw AppUpdateServiceError.noReleasesFound
+            }
+            json = first
+        }
+
+        guard let tagName = json["tag_name"] as? String,
               let assets = json["assets"] as? [[String: Any]] else {
             throw AppUpdateServiceError.noReleasesFound
         }
@@ -78,13 +100,15 @@ actor AppUpdateService {
 
         let version = tagName.hasPrefix("v") ? String(tagName.dropFirst()) : tagName
         let releaseNotes = json["body"] as? String
+        let isPrerelease = json["prerelease"] as? Bool ?? false
 
-        Self.logger.info("Found latest release: \(tagName)")
+        Self.logger.info("Found latest release: \(tagName) (prerelease: \(isPrerelease))")
         return GitHubRelease(
             tagName: tagName,
             version: version,
             dmgDownloadURL: downloadURL,
-            releaseNotes: releaseNotes
+            releaseNotes: releaseNotes,
+            prerelease: isPrerelease
         )
     }
 
