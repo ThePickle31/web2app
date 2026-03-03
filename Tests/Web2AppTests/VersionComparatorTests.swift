@@ -97,4 +97,70 @@ struct VersionComparatorTests {
         let v = try VersionComparator.parse("1.2.3")
         #expect(v.description == "1.2.3")
     }
+
+    // MARK: - Pre-release version tests
+
+    @Test("Parses version with pre-release identifier")
+    func parsePrereleaseVersion() throws {
+        let v = try VersionComparator.parse("0.0.3-beta.1")
+        #expect(v.major == 0)
+        #expect(v.minor == 0)
+        #expect(v.patch == 3)
+        #expect(v.prerelease == "beta.1")
+    }
+
+    @Test("Parses version with v prefix and pre-release")
+    func parseVPrefixWithPrerelease() throws {
+        let v = try VersionComparator.parse("v1.2.0-rc.1")
+        #expect(v.major == 1)
+        #expect(v.minor == 2)
+        #expect(v.patch == 0)
+        #expect(v.prerelease == "rc.1")
+    }
+
+    @Test("Pre-release is less than release with same base version")
+    func prereleaseIsLessThanRelease() throws {
+        let prerelease = try VersionComparator.parse("0.0.3-beta.1")
+        let release = try VersionComparator.parse("0.0.3")
+        #expect(prerelease < release)
+        #expect(!(release < prerelease))
+    }
+
+    @Test("Pre-release numeric ordering")
+    func prereleaseNumericOrdering() throws {
+        let beta1 = try VersionComparator.parse("0.0.3-beta.1")
+        let beta2 = try VersionComparator.parse("0.0.3-beta.2")
+        #expect(beta1 < beta2)
+        #expect(!(beta2 < beta1))
+    }
+
+    @Test("Pre-release versions with same identifiers are equal")
+    func prereleaseEquality() throws {
+        let a = try VersionComparator.parse("0.0.3-beta.1")
+        let b = try VersionComparator.parse("0.0.3-beta.1")
+        #expect(a == b)
+    }
+
+    @Test("Higher base version beats pre-release of lower version")
+    func higherBaseVersionWins() throws {
+        let betaHigher = try VersionComparator.parse("0.0.4-beta.1")
+        let releaseLower = try VersionComparator.parse("0.0.3")
+        #expect(betaHigher > releaseLower)
+    }
+
+    @Test("isNewer works with pre-release local version")
+    func isNewerWithPrereleaseLocal() throws {
+        // Stable release is newer than its own pre-release
+        #expect(try VersionComparator.isNewer(remote: "0.0.3", thanLocal: "0.0.3-beta.1") == true)
+        // Same pre-release is not newer
+        #expect(try VersionComparator.isNewer(remote: "0.0.3-beta.1", thanLocal: "0.0.3-beta.1") == false)
+        // Higher beta is newer
+        #expect(try VersionComparator.isNewer(remote: "0.0.3-beta.2", thanLocal: "0.0.3-beta.1") == true)
+    }
+
+    @Test("SemanticVersion description includes pre-release")
+    func descriptionWithPrerelease() throws {
+        let v = try VersionComparator.parse("1.2.3-beta.1")
+        #expect(v.description == "1.2.3-beta.1")
+    }
 }
