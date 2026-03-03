@@ -109,6 +109,9 @@ private struct UpdatesSettingsTab: View {
             Toggle("Automatically check for updates", isOn: $autoCheckForUpdates)
         }
         .formStyle(.grouped)
+        .onChange(of: updateChannel) {
+            updater.checkForUpdates()
+        }
     }
 
     @ViewBuilder
