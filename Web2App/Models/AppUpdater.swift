@@ -37,7 +37,9 @@ final class AppUpdater {
             status = .checking
 
             do {
-                let release = try await service.checkForLatestRelease()
+                let channelRaw = UserDefaults.standard.string(forKey: "updateChannel") ?? "stable"
+                let channel = UpdateChannel(rawValue: channelRaw) ?? .stable
+                let release = try await service.checkForLatestRelease(channel: channel)
                 if Task.isCancelled { return }
 
                 let isNewer = try VersionComparator.isNewer(

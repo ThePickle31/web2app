@@ -20,7 +20,7 @@ struct SettingsView: View {
                     Label("Updates", systemImage: "arrow.triangle.2.circlepath")
                 }
         }
-        .frame(width: 450, height: 250)
+        .frame(width: 450, height: 280)
     }
 }
 
@@ -80,12 +80,18 @@ private struct AdvancedSettingsTab: View {
 private struct UpdatesSettingsTab: View {
     @Bindable var updater: AppUpdater
     @AppStorage("autoCheckForUpdates") private var autoCheckForUpdates = true
+    @AppStorage("updateChannel") private var updateChannel = "stable"
 
     var body: some View {
         Form {
             LabeledContent("Current Version") {
                 Text(updater.currentVersion)
                     .foregroundStyle(.secondary)
+            }
+
+            Picker("Update Channel", selection: $updateChannel) {
+                Text("Stable").tag("stable")
+                Text("Beta").tag("beta")
             }
 
             statusView
@@ -126,7 +132,8 @@ private struct UpdatesSettingsTab: View {
             }
         case .updateAvailable(let version):
             LabeledContent("Status") {
-                Text("Version \(version) is available")
+                let suffix = updater.availableRelease?.prerelease == true ? " (Beta)" : ""
+                Text("Version \(version)\(suffix) is available")
                     .foregroundStyle(.orange)
             }
         case .downloading(let progress):
