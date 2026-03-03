@@ -2,6 +2,7 @@ import SwiftUI
 
 struct AppCommands: Commands {
     let store: WebAppStore
+    let updater: AppUpdater
 
     var body: some Commands {
         SidebarCommands()
@@ -16,6 +17,13 @@ struct AppCommands: Commands {
                 NotificationCenter.default.post(name: .importURLFromClipboard, object: nil)
             }
             .keyboardShortcut("v", modifiers: [.command, .shift])
+        }
+
+        CommandGroup(after: .appInfo) {
+            Button("Check for Updates...") {
+                updater.checkForUpdates()
+                NSApp.sendAction(Selector(("showSettingsWindow:")), to: nil, from: nil)
+            }
         }
 
         CommandMenu("Web App") {

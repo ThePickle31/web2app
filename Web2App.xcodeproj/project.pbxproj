@@ -46,6 +46,10 @@
 		A10000000000000000000080 /* WebAppFormView.swift in Sources */ = {isa = PBXBuildFile; fileRef = B10000000000000000000080 /* WebAppFormView.swift */; };
 		A10000000000000000000055 /* WebAppStoreTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = B10000000000000000000055 /* WebAppStoreTests.swift */; };
 		A10000000000000000000056 /* BundleStructureSanitizationTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = B10000000000000000000056 /* BundleStructureSanitizationTests.swift */; };
+		A10000000000000000000090 /* VersionComparator.swift in Sources */ = {isa = PBXBuildFile; fileRef = B10000000000000000000090 /* VersionComparator.swift */; };
+		A10000000000000000000091 /* AppUpdateService.swift in Sources */ = {isa = PBXBuildFile; fileRef = B10000000000000000000091 /* AppUpdateService.swift */; };
+		A10000000000000000000092 /* AppUpdater.swift in Sources */ = {isa = PBXBuildFile; fileRef = B10000000000000000000092 /* AppUpdater.swift */; };
+		A10000000000000000000093 /* VersionComparatorTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = B10000000000000000000093 /* VersionComparatorTests.swift */; };
 /* End PBXBuildFile section */
 
 /* Begin PBXContainerItemProxy section */
@@ -121,6 +125,10 @@
 		B10000000000000000000080 /* WebAppFormView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = WebAppFormView.swift; sourceTree = "<group>"; };
 		B10000000000000000000055 /* WebAppStoreTests.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = WebAppStoreTests.swift; sourceTree = "<group>"; };
 		B10000000000000000000056 /* BundleStructureSanitizationTests.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = BundleStructureSanitizationTests.swift; sourceTree = "<group>"; };
+		B10000000000000000000090 /* VersionComparator.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = VersionComparator.swift; sourceTree = "<group>"; };
+		B10000000000000000000091 /* AppUpdateService.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = AppUpdateService.swift; sourceTree = "<group>"; };
+		B10000000000000000000092 /* AppUpdater.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = AppUpdater.swift; sourceTree = "<group>"; };
+		B10000000000000000000093 /* VersionComparatorTests.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = VersionComparatorTests.swift; sourceTree = "<group>"; };
 /* End PBXFileReference section */
 
 /* Begin PBXFrameworksBuildPhase section */
@@ -181,6 +189,7 @@
 			children = (
 				B10000000000000000000002 /* WebApp.swift */,
 				B10000000000000000000003 /* WebAppStore.swift */,
+				B10000000000000000000092 /* AppUpdater.swift */,
 			);
 			path = Models;
 			sourceTree = "<group>";
@@ -227,6 +236,7 @@
 				B10000000000000000000010 /* BundleStructureBuilder.swift */,
 				B10000000000000000000011 /* PlistGenerator.swift */,
 				B10000000000000000000012 /* CodeSigner.swift */,
+				B10000000000000000000091 /* AppUpdateService.swift */,
 			);
 			path = Services;
 			sourceTree = "<group>";
@@ -237,6 +247,7 @@
 				B10000000000000000000013 /* URLValidator.swift */,
 				B10000000000000000000014 /* NSImageExtensions.swift */,
 				B10000000000000000000070 /* GlassModifier.swift */,
+				B10000000000000000000090 /* VersionComparator.swift */,
 			);
 			path = Utilities;
 			sourceTree = "<group>";
@@ -279,6 +290,7 @@
 				B10000000000000000000054 /* AppGeneratorTests.swift */,
 				B10000000000000000000055 /* WebAppStoreTests.swift */,
 				B10000000000000000000056 /* BundleStructureSanitizationTests.swift */,
+				B10000000000000000000093 /* VersionComparatorTests.swift */,
 			);
 			path = Web2AppTests;
 			sourceTree = "<group>";
@@ -438,6 +450,9 @@
 				A10000000000000000000014 /* NSImageExtensions.swift in Sources */,
 				A10000000000000000000070 /* GlassModifier.swift in Sources */,
 				A10000000000000000000080 /* WebAppFormView.swift in Sources */,
+				A10000000000000000000090 /* VersionComparator.swift in Sources */,
+				A10000000000000000000091 /* AppUpdateService.swift in Sources */,
+				A10000000000000000000092 /* AppUpdater.swift in Sources */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};
@@ -463,6 +478,7 @@
 				A10000000000000000000054 /* AppGeneratorTests.swift in Sources */,
 				A10000000000000000000055 /* WebAppStoreTests.swift in Sources */,
 				A10000000000000000000056 /* BundleStructureSanitizationTests.swift in Sources */,
+				A10000000000000000000093 /* VersionComparatorTests.swift in Sources */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};
