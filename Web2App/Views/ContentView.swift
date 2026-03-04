@@ -2,9 +2,11 @@ import SwiftUI
 
 struct ContentView: View {
     @Environment(WebAppStore.self) private var store
+    @Environment(AppUpdater.self) private var updater
     @State private var selectedAppID: WebApp.ID?
     @State private var isCreateSheetPresented = false
     @State private var droppedURL: URL?
+    @State private var isUpdateBannerDismissed = false
 
     var body: some View {
         NavigationSplitView {
@@ -36,6 +38,21 @@ struct ContentView: View {
         .onDrop(of: [.url], isTargeted: nil) { providers in
             handleURLDrop(providers)
         }
+        .overlay(alignment: .bottomTrailing) {
+            if case .updateAvailable(let version) = updater.status, !isUpdateBannerDismissed {
+                UpdateBannerView(
+                    currentVersion: updater.currentVersion,
+                    availableVersion: version,
+                    isBeta: updater.availableRelease?.prerelease == true,
+                    onUpdate: { updater.downloadAndInstall() },
+                    onDismiss: { isUpdateBannerDismissed = true }
+                )
+                .padding(16)
+                .transition(.move(edge: .bottom).combined(with: .opacity))
+                .animation(.easeInOut(duration: 0.3), value: isUpdateBannerDismissed)
+            }
+        }
+        .animation(.easeInOut(duration: 0.3), value: updater.status)
         .onReceive(NotificationCenter.default.publisher(for: .createNewWebApp)) { _ in
             isCreateSheetPresented = true
         }

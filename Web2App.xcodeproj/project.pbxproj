@@ -50,6 +50,7 @@
 		A10000000000000000000091 /* AppUpdateService.swift in Sources */ = {isa = PBXBuildFile; fileRef = B10000000000000000000091 /* AppUpdateService.swift */; };
 		A10000000000000000000092 /* AppUpdater.swift in Sources */ = {isa = PBXBuildFile; fileRef = B10000000000000000000092 /* AppUpdater.swift */; };
 		A10000000000000000000093 /* VersionComparatorTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = B10000000000000000000093 /* VersionComparatorTests.swift */; };
+		A100000000000000000000A0 /* UpdateBannerView.swift in Sources */ = {isa = PBXBuildFile; fileRef = B100000000000000000000A0 /* UpdateBannerView.swift */; };
 /* End PBXBuildFile section */
 
 /* Begin PBXContainerItemProxy section */
@@ -129,6 +130,7 @@
 		B10000000000000000000091 /* AppUpdateService.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = AppUpdateService.swift; sourceTree = "<group>"; };
 		B10000000000000000000092 /* AppUpdater.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = AppUpdater.swift; sourceTree = "<group>"; };
 		B10000000000000000000093 /* VersionComparatorTests.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = VersionComparatorTests.swift; sourceTree = "<group>"; };
+		B100000000000000000000A0 /* UpdateBannerView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = UpdateBannerView.swift; sourceTree = "<group>"; };
 /* End PBXFileReference section */
 
 /* Begin PBXFrameworksBuildPhase section */
@@ -205,6 +207,7 @@
 				B10000000000000000000060 /* EditAppView.swift */,
 				B10000000000000000000009 /* EmptyStateView.swift */,
 				B1000000000000000000000A /* SettingsView.swift */,
+				B100000000000000000000A0 /* UpdateBannerView.swift */,
 				G10000000000000000000005 /* Components */,
 			);
 			path = Views;
@@ -453,6 +456,7 @@
 				A10000000000000000000090 /* VersionComparator.swift in Sources */,
 				A10000000000000000000091 /* AppUpdateService.swift in Sources */,
 				A10000000000000000000092 /* AppUpdater.swift in Sources */,
+				A100000000000000000000A0 /* UpdateBannerView.swift in Sources */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};
